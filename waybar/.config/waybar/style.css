@@ -52,6 +52,7 @@ tooltip {
 #clock,
 #battery,
 #pulseaudio,
+#custom-microphone,
 #network,
 #bluetooth,
 #temperature,
@@ -130,7 +131,8 @@ tooltip {
   border-right: 0px;
 }
 
-#pulseaudio.microphone {
+#pulseaudio.microphone,
+#custom-microphone {
   color: @mauve;
   border-left: 0px;
   border-right: 0px;

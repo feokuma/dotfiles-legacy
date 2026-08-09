@@ -16,10 +16,10 @@
 		"battery",
 		"backlight",
 		"temperature",
-		//"wireplumber",
-		//"pipewire#microphone"
-		"pulseaudio",
-		"pulseaudio#microphone"
+			//"wireplumber",
+			//"pipewire#microphone"
+			"pulseaudio",
+			"custom/microphone"
 	],
 	"hyprland/workspaces": {
 		"disable-scroll": true,
@@ -109,20 +109,21 @@
 			"car": "",
 			"default": ["", "", ""]
 		}
-	},
-	"pulseaudio#microphone": {
-		"format": "{format_source}",
-		"format-source": " {volume}%",
-		"format-source-muted": " Muted",
-		"on-click": "pamixer --default-source -t",
-		"on-scroll-up": "pamixer --default-source -i 1",
-		"on-scroll-down": "pamixer --default-source -d 1",
-		"on-click-right": "pavucontrol --tab=4",
-		"scroll-step": 1
-	},
-	"pipewire#microphone": {
-		"format": "{format_source}",
-		"format-source": " {volume}%",
+		},
+		"custom/microphone": {
+			"format": "{text}",
+			"exec": "~/.config/waybar/scripts/microphone-status.sh",
+			"return-type": "json",
+			"interval": 5,
+			"signal": 8,
+			"on-click": "pamixer --default-source -t && pkill -SIGRTMIN+8 waybar",
+			"on-scroll-up": "pamixer --default-source -i 1 && pkill -SIGRTMIN+8 waybar",
+			"on-scroll-down": "pamixer --default-source -d 1 && pkill -SIGRTMIN+8 waybar",
+			"on-click-right": "pavucontrol --tab=4"
+		},
+		"pipewire#microphone": {
+			"format": "{format_source}",
+			"format-source": " {volume}%",
 		"format-source-muted": " Muted",
 		"on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle",
 		"on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 1%+",
