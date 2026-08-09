@@ -2,13 +2,10 @@
 
 local home = os.getenv("HOME")
 local main_mod = "SUPER"
-local terminal = "kitty"
+local terminal = "ghostty"
 local file_manager = "thunar"
 local launcher = "wofi --show drun"
-
-local function bind_exec(key, command, options)
-	hl.bind(key, hl.dsp.exec_cmd(command), options)
-end
+local touchpad_name = "asup1206:00-093a:300d-touchpad"
 
 -- Monitor
 hl.monitor({
@@ -97,6 +94,9 @@ hl.config({
 			render_power = 1,
 			color = "rgba(1a1a1aee)",
 		},
+
+		active_opacity = 1.0,
+		inactive_opacity = 0.9,
 	},
 	animations = {
 		enabled = true,
@@ -181,60 +181,104 @@ hl.window_rule({
 	center = true,
 })
 
--- Application bindings
-bind_exec(main_mod .. " + Q", terminal)
-hl.bind("ALT + F4", hl.dsp.window.close())
-bind_exec(main_mod .. " + L", "hyprlock")
-bind_exec(main_mod .. " + M", "wlogout --protocol layer-shell")
+-- Applications and launchers
+hl.bind(main_mod .. " + Q", hl.dsp.exec_cmd(terminal))
+hl.bind(main_mod .. " + E", hl.dsp.exec_cmd(file_manager))
+hl.bind("ALT + SPACE", hl.dsp.exec_cmd(launcher))
+hl.bind("ALT + N", hl.dsp.exec_cmd([[networkmanager_dmenu -b --dmenu 'wofi --show dmenu']]))
+hl.bind("CTRL + PERIOD", hl.dsp.exec_cmd("wofi-emoji --clipboard"))
+
+-- Session controls
+hl.bind(main_mod .. " + L", hl.dsp.exec_cmd("hyprlock"))
+hl.bind(main_mod .. " + M", hl.dsp.exec_cmd("wlogout --protocol layer-shell"))
 hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exit())
-bind_exec(main_mod .. " + E", file_manager)
-bind_exec("ALT + SPACE", launcher)
+hl.bind(
+	main_mod .. " + SHIFT + R",
+	hl.dsp.exec_cmd([[pkill -x waybar; sleep 0.2; nohup /usr/bin/waybar >/tmp/waybar.log 2>&1 &]])
+)
+
+-- Window actions
+hl.bind("ALT + F4", hl.dsp.window.close())
 hl.bind(main_mod .. " + P", hl.dsp.window.pseudo())
 hl.bind(main_mod .. " + J", hl.dsp.layout("togglesplit"))
-bind_exec(main_mod .. " + S", [[grim -g "$(slurp)" - | swappy -f -]])
-bind_exec("ALT + N", [[networkmanager_dmenu -b --dmenu 'wofi --show dmenu']])
-bind_exec("CTRL + PERIOD", "wofi-emoji --clipboard")
-bind_exec(
-	main_mod .. " + F",
-	"hyprctl dispatch togglefloating && hyprctl dispatch resizeactive exact 1200 800 && hyprctl dispatch centerwindow"
-)
-bind_exec(main_mod .. " + SPACE", "hyprctl switchxkblayout at-translated-set-2-keyboard next")
+hl.bind(main_mod .. " + F", function()
+	hl.dispatch(hl.dsp.window.float({ action = "toggle" }))
+	hl.dispatch(hl.dsp.window.resize({ x = 1200, y = 800 }))
+	hl.dispatch(hl.dsp.window.center())
+end)
 
-local restart_waybar = [[sh -c 'pkill -x waybar; sleep 0.2; nohup /usr/bin/waybar >/tmp/waybar.log 2>&1 &']]
-bind_exec(main_mod .. " + SHIFT + R", restart_waybar)
-bind_exec(main_mod .. " + C", "hyprpicker -a")
+-- Screenshots and color picker
+hl.bind(main_mod .. " + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | swappy -f -]]))
+hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region -o - | swappy -f -"))
+hl.bind(main_mod .. " + C", hl.dsp.exec_cmd("hyprpicker -a"))
 
--- Hardware bindings
-bind_exec("code:156", "rog-control-center")
-bind_exec("code:211", "asusctl profile -n; pkill -SIGRTMIN+8 waybar")
-bind_exec("code:232", "brightnessctl set 1%-")
-bind_exec("code:233", "brightnessctl set 1%+")
-bind_exec("code:237", "brightnessctl -d asus::kbd_backlight set 33%-")
-bind_exec("code:238", "brightnessctl -d asus::kbd_backlight set 33%+")
-bind_exec("code:210", "asusctl led-mode -n")
+-- Keyboard layout
+hl.bind(main_mod .. " + SPACE", hl.dsp.exec_cmd("hyprctl switchxkblayout at-translated-set-2-keyboard next"))
 
-bind_exec("code:123", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ && pkill -SIGRTMIN+8 waybar")
-bind_exec("code:122", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%- && pkill -SIGRTMIN+8 waybar")
-bind_exec("code:121", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && pkill -SIGRTMIN+8 waybar")
-
--- Window and workspace navigation
+-- Window focus
 hl.bind(main_mod .. " + LEFT", hl.dsp.focus({ direction = "left" }))
 hl.bind(main_mod .. " + RIGHT", hl.dsp.focus({ direction = "right" }))
 hl.bind(main_mod .. " + UP", hl.dsp.focus({ direction = "up" }))
 hl.bind(main_mod .. " + DOWN", hl.dsp.focus({ direction = "down" }))
 
+-- Workspaces
 for workspace = 1, 10 do
 	local key = workspace % 10
 	hl.bind(main_mod .. " + " .. key, hl.dsp.focus({ workspace = workspace }))
 	hl.bind(main_mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = workspace }))
 end
 
+-- Mouse actions
 hl.bind(main_mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(main_mod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
 hl.bind(main_mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
 hl.bind(main_mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
--- System bindings
-bind_exec("Print", "hyprshot -m region -o - | swappy -f -")
-bind_exec("switch:on:Lid Switch", [[hyprctl keyword monitor "eDP-1, disable"]], { locked = true })
-bind_exec("switch:off:Lid Switch", "hyprctl reload", { locked = true })
+-- ASUS hardware keys
+hl.bind("code:156", hl.dsp.exec_cmd("rog-control-center"))
+hl.bind("code:211", hl.dsp.exec_cmd("asusctl profile -n; pkill -SIGRTMIN+8 waybar"), { locked = true })
+hl.bind("code:210", hl.dsp.exec_cmd("asusctl led-mode -n"))
+
+-- Touchpad
+hl.device({ name = touchpad_name, enabled = true })
+
+-- Brightness
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 1%-"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl set 1%+"), { locked = true, repeating = true })
+hl.bind("code:237", hl.dsp.exec_cmd("brightnessctl -d asus::kbd_backlight set 33%-"), {
+	locked = true,
+	repeating = true,
+})
+hl.bind("code:238", hl.dsp.exec_cmd("brightnessctl -d asus::kbd_backlight set 33%+"), {
+	locked = true,
+	repeating = true,
+})
+
+-- Audio
+hl.bind(
+	"XF86AudioRaiseVolume",
+	hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ && pkill -SIGRTMIN+8 waybar"),
+	{
+		locked = true,
+		repeating = true,
+	}
+)
+hl.bind(
+	"XF86AudioLowerVolume",
+	hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%- && pkill -SIGRTMIN+8 waybar"),
+	{
+		locked = true,
+		repeating = true,
+	}
+)
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && pkill -SIGRTMIN+8 waybar"), {
+	locked = true,
+	repeating = true,
+})
+
+-- Lid switch
+hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd([[hyprctl keyword monitor "eDP-1, disable"]]), { locked = true })
+hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl reload"), { locked = true })
+
+-- HyprMod managed settings
+require("hyprland-gui")
