@@ -1,8 +1,16 @@
 -- Hyprland configuration using the Lua format introduced in 0.56.
 
 local home = os.getenv("HOME")
-local mainMod = "SUPER"
+local main_mod = "SUPER"
+local terminal = "kitty"
+local file_manager = "thunar"
+local launcher = "wofi --show drun"
 
+local function bind_exec(key, command, options)
+	hl.bind(key, hl.dsp.exec_cmd(command), options)
+end
+
+-- Monitor
 hl.monitor({
 	output = "eDP-1",
 	mode = "preferred",
@@ -10,19 +18,27 @@ hl.monitor({
 	scale = 1.5,
 })
 
-hl.env("_JAVA_AWT_WM_NONREPARENTING", "1")
-hl.env("XCURSOR_SIZE", "24")
-hl.env("WLR_NO_HARDWARE_CURSORS", "1")
-hl.env("HYPRLAND_NO_SD_NOTIFY", "1")
-hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
-hl.env("XCOMPOSEFILE", home .. "/.config/xkb/compose")
-hl.env("XCOMPOSECACHE", home .. "/.cache/xcompose")
-hl.env("DOTNET_ROOT", home .. "/.dotnet")
-hl.env("PATH", os.getenv("PATH") .. ":" .. home .. "/.dotnet:" .. home .. "/.dotnet/tools")
-hl.env("GTK_THEME", "Adwaita:dark")
-hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
-hl.env("XDG_SESSION_DESKTOP", "Hyprland")
+-- Environment
+local environment = {
+	_JAVA_AWT_WM_NONREPARENTING = "1",
+	XCURSOR_SIZE = "24",
+	WLR_NO_HARDWARE_CURSORS = "1",
+	HYPRLAND_NO_SD_NOTIFY = "1",
+	ELECTRON_OZONE_PLATFORM_HINT = "auto",
+	XCOMPOSEFILE = home .. "/.config/xkb/compose",
+	XCOMPOSECACHE = home .. "/.cache/xcompose",
+	DOTNET_ROOT = home .. "/.dotnet",
+	PATH = os.getenv("PATH") .. ":" .. home .. "/.dotnet:" .. home .. "/.dotnet/tools",
+	GTK_THEME = "Adwaita:dark",
+	XDG_CURRENT_DESKTOP = "Hyprland",
+	XDG_SESSION_DESKTOP = "Hyprland",
+}
 
+for name, value in pairs(environment) do
+	hl.env(name, value)
+end
+
+-- Startup
 hl.on("hyprland.start", function()
 	local commands = {
 		"fcitx5",
@@ -33,10 +49,6 @@ hl.on("hyprland.start", function()
 		"hyprpaper",
 		"swaync",
 		"hypridle",
-		"mako",
-		"wlr-randr",
-		"wl-paste",
-		"wl-copy",
 		"lxqt-policykit-agent",
 	}
 
@@ -45,6 +57,7 @@ hl.on("hyprland.start", function()
 	end
 end)
 
+-- General configuration
 hl.config({
 	input = {
 		kb_layout = "us",
@@ -54,6 +67,7 @@ hl.config({
 		touchpad = {
 			natural_scroll = true,
 			disable_while_typing = true,
+			tap_to_click = false,
 		},
 	},
 	general = {
@@ -95,23 +109,32 @@ hl.config({
 	},
 })
 
+-- Animations
 hl.curve("myBezier", {
 	type = "bezier",
 	points = { { 0.05, 0.9 }, { 0.1, 1.05 } },
 })
 
-hl.animation({ leaf = "windows", enabled = true, speed = 7, bezier = "myBezier", style = "gnomed" })
-hl.animation({ leaf = "windowsOut", enabled = true, speed = 7, bezier = "default", style = "popin 80%" })
-hl.animation({ leaf = "border", enabled = true, speed = 10, bezier = "default" })
-hl.animation({ leaf = "fade", enabled = true, speed = 7, bezier = "default" })
-hl.animation({ leaf = "workspaces", enabled = true, speed = 6, bezier = "default", style = "slide" })
+local animations = {
+	{ leaf = "windows", enabled = true, speed = 7, bezier = "myBezier", style = "gnomed" },
+	{ leaf = "windowsOut", enabled = true, speed = 7, bezier = "default", style = "popin 80%" },
+	{ leaf = "border", enabled = true, speed = 10, bezier = "default" },
+	{ leaf = "fade", enabled = true, speed = 7, bezier = "default" },
+	{ leaf = "workspaces", enabled = true, speed = 6, bezier = "default", style = "slide" },
+}
 
+for _, animation in ipairs(animations) do
+	hl.animation(animation)
+end
+
+-- Gestures
 hl.gesture({
 	fingers = 3,
 	direction = "horizontal",
 	action = "workspace",
 })
 
+-- Window rules
 hl.window_rule({
 	name = "thunar",
 	match = { class = "thunar" },
@@ -141,11 +164,6 @@ hl.window_rule({
 })
 
 hl.window_rule({
-	name = "firefox",
-	match = { class = "firefox" },
-})
-
-hl.window_rule({
 	name = "code",
 	match = { class = "code" },
 	opacity = 0.98,
@@ -163,59 +181,60 @@ hl.window_rule({
 	center = true,
 })
 
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd("kitty"))
+-- Application bindings
+bind_exec(main_mod .. " + Q", terminal)
 hl.bind("ALT + F4", hl.dsp.window.close())
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("wlogout --protocol layer-shell"))
-hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exit())
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd("thunar"))
-hl.bind("ALT + SPACE", hl.dsp.exec_cmd("wofi --show drun"))
-hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
-hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | swappy -f -]]))
-hl.bind("ALT + N", hl.dsp.exec_cmd([[networkmanager_dmenu -b --dmenu 'wofi --show dmenu']]))
-hl.bind("CTRL + PERIOD", hl.dsp.exec_cmd("wofi-emoji --clipboard"))
-hl.bind(
-	mainMod .. " + F",
-	hl.dsp.exec_cmd(
-		"hyprctl dispatch togglefloating && hyprctl dispatch resizeactive exact 1200 800 && hyprctl dispatch centerwindow"
-	)
+bind_exec(main_mod .. " + L", "hyprlock")
+bind_exec(main_mod .. " + M", "wlogout --protocol layer-shell")
+hl.bind(main_mod .. " + SHIFT + M", hl.dsp.exit())
+bind_exec(main_mod .. " + E", file_manager)
+bind_exec("ALT + SPACE", launcher)
+hl.bind(main_mod .. " + P", hl.dsp.window.pseudo())
+hl.bind(main_mod .. " + J", hl.dsp.layout("togglesplit"))
+bind_exec(main_mod .. " + S", [[grim -g "$(slurp)" - | swappy -f -]])
+bind_exec("ALT + N", [[networkmanager_dmenu -b --dmenu 'wofi --show dmenu']])
+bind_exec("CTRL + PERIOD", "wofi-emoji --clipboard")
+bind_exec(
+	main_mod .. " + F",
+	"hyprctl dispatch togglefloating && hyprctl dispatch resizeactive exact 1200 800 && hyprctl dispatch centerwindow"
 )
-hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("hyprctl switchxkblayout at-translated-set-2-keyboard next"))
-hl.bind(
-	mainMod .. " + SHIFT + R",
-	hl.dsp.exec_cmd([[sh -c 'pkill -x waybar; sleep 0.2; nohup /usr/bin/waybar >/tmp/waybar.log 2>&1 &']])
-)
-hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("hyprpicker -a"))
+bind_exec(main_mod .. " + SPACE", "hyprctl switchxkblayout at-translated-set-2-keyboard next")
 
-hl.bind("code:156", hl.dsp.exec_cmd("rog-control-center"))
-hl.bind("code:211", hl.dsp.exec_cmd("asusctl profile -n; pkill -SIGRTMIN+8 waybar"))
-hl.bind("code:232", hl.dsp.exec_cmd("brightnessctl set 1%-"))
-hl.bind("code:233", hl.dsp.exec_cmd("brightnessctl set 1%+"))
-hl.bind("code:237", hl.dsp.exec_cmd("brightnessctl -d asus::kbd_backlight set 33%-"))
-hl.bind("code:238", hl.dsp.exec_cmd("brightnessctl -d asus::kbd_backlight set 33%+"))
-hl.bind("code:210", hl.dsp.exec_cmd("asusctl led-mode -n"))
+local restart_waybar = [[sh -c 'pkill -x waybar; sleep 0.2; nohup /usr/bin/waybar >/tmp/waybar.log 2>&1 &']]
+bind_exec(main_mod .. " + SHIFT + R", restart_waybar)
+bind_exec(main_mod .. " + C", "hyprpicker -a")
 
-hl.bind("code:123", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ && pkill -SIGRTMIN+8 waybar"))
-hl.bind("code:122", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%- && pkill -SIGRTMIN+8 waybar"))
-hl.bind("code:121", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && pkill -SIGRTMIN+8 waybar"))
+-- Hardware bindings
+bind_exec("code:156", "rog-control-center")
+bind_exec("code:211", "asusctl profile -n; pkill -SIGRTMIN+8 waybar")
+bind_exec("code:232", "brightnessctl set 1%-")
+bind_exec("code:233", "brightnessctl set 1%+")
+bind_exec("code:237", "brightnessctl -d asus::kbd_backlight set 33%-")
+bind_exec("code:238", "brightnessctl -d asus::kbd_backlight set 33%+")
+bind_exec("code:210", "asusctl led-mode -n")
 
-hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + H", hl.dsp.focus({ direction = "right" }))
-hl.bind(mainMod .. " + K", hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + J", hl.dsp.focus({ direction = "down" }))
+bind_exec("code:123", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%+ && pkill -SIGRTMIN+8 waybar")
+bind_exec("code:122", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 1%- && pkill -SIGRTMIN+8 waybar")
+bind_exec("code:121", "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && pkill -SIGRTMIN+8 waybar")
+
+-- Window and workspace navigation
+hl.bind(main_mod .. " + LEFT", hl.dsp.focus({ direction = "left" }))
+hl.bind(main_mod .. " + RIGHT", hl.dsp.focus({ direction = "right" }))
+hl.bind(main_mod .. " + UP", hl.dsp.focus({ direction = "up" }))
+hl.bind(main_mod .. " + DOWN", hl.dsp.focus({ direction = "down" }))
 
 for workspace = 1, 10 do
 	local key = workspace % 10
-	hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = workspace }))
-	hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = workspace }))
+	hl.bind(main_mod .. " + " .. key, hl.dsp.focus({ workspace = workspace }))
+	hl.bind(main_mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = workspace }))
 end
 
-hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
-hl.bind(mainMod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
-hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
-hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+hl.bind(main_mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(main_mod .. " + mouse_up", hl.dsp.focus({ workspace = "e-1" }))
+hl.bind(main_mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })
+hl.bind(main_mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
-hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m region -o - | swappy -f -"))
-hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd([[hyprctl keyword monitor "eDP-1, disable"]]), { locked = true })
-hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl reload"), { locked = true })
+-- System bindings
+bind_exec("Print", "hyprshot -m region -o - | swappy -f -")
+bind_exec("switch:on:Lid Switch", [[hyprctl keyword monitor "eDP-1, disable"]], { locked = true })
+bind_exec("switch:off:Lid Switch", "hyprctl reload", { locked = true })
