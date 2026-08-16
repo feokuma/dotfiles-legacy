@@ -7,12 +7,24 @@ local file_manager = "thunar"
 local launcher = "wofi --show drun"
 local touchpad_name = "asup1206:00-093a:300d-touchpad"
 
+local function is_lid_closed()
+	local file = io.open("/proc/acpi/button/lid/LID/state", "r")
+	if not file then
+		return false
+	end
+
+	local state = file:read("*a")
+	file:close()
+	return state:find("closed", 1, true) ~= nil
+end
+
 -- Monitor
 hl.monitor({
 	output = "eDP-1",
 	mode = "preferred",
 	position = "0x0",
 	scale = 1.5,
+	disabled = is_lid_closed(),
 })
 
 hl.monitor({
@@ -54,6 +66,7 @@ hl.on("hyprland.start", function()
 		"swaync",
 		"hypridle",
 		"lxqt-policykit-agent",
+		home .. "/.config/hypr/lid-monitor.sh",
 	}
 
 	for _, command in ipairs(commands) do
@@ -283,9 +296,6 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ to
 	repeating = true,
 })
 
--- Lid switch
-hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd([[hyprctl keyword monitor "eDP-1, disable"]]), { locked = true })
-hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd("hyprctl reload"), { locked = true })
 
 -- HyprMod managed settings
 require("hyprland-gui")
