@@ -15,6 +15,13 @@ hl.monitor({
 	scale = 1.5,
 })
 
+hl.monitor({
+	output = "desc:Dell Inc. DELL S2421HN B1P4DQ3",
+	mode = "preferred",
+	position = "auto",
+	scale = 1,
+})
+
 -- Environment
 local environment = {
 	_JAVA_AWT_WM_NONREPARENTING = "1",
