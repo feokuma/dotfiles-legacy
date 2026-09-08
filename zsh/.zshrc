@@ -109,7 +109,7 @@ export PATH="$HOME/.dotnet:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.rbenv/bin:$PATH"
 export PATH="$HOME/bin:$PATH"
-
+export PATH="$PATH:/usr/lib/qt6/bin"
 
 export MANPAGER="nvim +Man!"
 
