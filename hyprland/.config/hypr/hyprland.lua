@@ -296,6 +296,5 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ to
 	repeating = true,
 })
 
-
 -- HyprMod managed settings
 require("hyprland-gui")
