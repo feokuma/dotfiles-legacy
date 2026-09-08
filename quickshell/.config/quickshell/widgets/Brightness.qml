@@ -147,7 +147,7 @@ Item {
                 id: tooltipText
 
                 anchors.centerIn: parent
-                text: `Brilho ${root.level}%`
+                text: `Brightness ${root.level}%`
                 color: "#cdd6f4"
                 font.family: Theme.fontFamily
                 font.bold: Theme.fontBold

@@ -8,7 +8,7 @@ Item {
 
     property int level: 0
     property bool charging: false
-    property string stateText: "Carregada"
+    property string stateText: "Charged"
     property bool showTooltip: false
 
     implicitWidth: background.width
@@ -42,7 +42,7 @@ Item {
 
         root.level = count ? Math.round(sum / count) : 0;
         root.charging = state === "charging";
-        root.stateText = state === "charging" ? "Carregando" : state === "discharging" ? "Descarregando" : "Carregada";
+        root.stateText = state === "charging" ? "Charging" : state === "discharging" ? "Discharging" : "Charged";
     }
 
     function batteryIcon() {

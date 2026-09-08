@@ -105,7 +105,7 @@ Item {
                 id: tooltipText
 
                 anchors.centerIn: parent
-                text: root.source ? root.source.description : "Microfone indisponível"
+                text: root.source ? root.source.description : "Microphone unavailable"
                 color: "#cdd6f4"
                 font.family: Theme.fontFamily
                 font.bold: Theme.fontBold

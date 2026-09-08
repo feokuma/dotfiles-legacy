@@ -96,7 +96,7 @@ Item {
                 id: tooltipText
 
                 anchors.centerIn: parent
-                text: !root.powered ? "Bluetooth desligado" : root.deviceCount > 0 ? ` ${root.deviceCount} conectado${root.deviceCount > 1 ? "s" : ""}\n${root.deviceList}` : "Bluetooth ligado\nNenhum dispositivo conectado"
+                text: !root.powered ? "Bluetooth off" : root.deviceCount > 0 ? ` ${root.deviceCount} connected${root.deviceCount > 1 ? "s" : ""}\n${root.deviceList}` : "Bluetooth on\nNo devices connected"
                 color: "#cdd6f4"
                 font.family: Theme.fontFamily
                 font.bold: Theme.fontBold

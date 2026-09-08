@@ -102,7 +102,7 @@ Item {
                 anchors.centerIn: parent
                 text: root.connected
                     ? `${root.networkName} (${root.signalStrength}%)\n${root.ipAddress}`
-                    : "Desconectado"
+                    : "Disconnected"
                 color: "#cdd6f4"
                 font.family: Theme.fontFamily
                 font.bold: Theme.fontBold
