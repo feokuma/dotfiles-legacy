@@ -291,7 +291,7 @@ PopupWindow {
 
                             Text {
                                 text: modelData.batteryAvailable
-                                    ? `󰁹 ${Math.round(modelData.battery)}%` : ""
+                                    ? `󰁹 ${Math.round(modelData.battery * 100)}%` : ""
                                 color: "#a6e3a1"
                                 visible: text !== ""
                                 font.family: Theme.fontFamily
