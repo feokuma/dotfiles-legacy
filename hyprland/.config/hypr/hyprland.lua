@@ -61,7 +61,7 @@ hl.on("hyprland.start", function()
 		home .. "/.config/hypr/xdg-portal-hyprland",
 		"dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
 		"systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP",
-		"waybar",
+		"qs",
 		"hyprpaper",
 		"swaync",
 		"hypridle",
@@ -104,9 +104,9 @@ hl.config({
 	decoration = {
 		rounding = 5,
 		blur = {
-			enabled = false,
-			size = 7,
-			passes = 3,
+			enabled = true,
+			size = 1,
+			passes = 2,
 		},
 		shadow = {
 			enabled = true,
