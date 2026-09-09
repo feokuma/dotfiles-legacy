@@ -1,5 +1,5 @@
 import Quickshell
-import Quickshell.Hyprland
+import Quickshell.Wayland
 import QtQuick
 import "../theme"
 
@@ -11,6 +11,7 @@ Item {
     implicitWidth: background.width
     implicitHeight: background.height
 
+    // Botão da barra que abre a tela de energia.
     Rectangle {
         id: background
 
@@ -38,127 +39,137 @@ Item {
         onClicked: root.menuOpen = !root.menuOpen
     }
 
-    PopupWindow {
-        id: popup
+    // Tela de energia em tela cheia, uma por monitor.
+    Variants {
+        model: Quickshell.screens
 
-        visible: root.menuOpen
-        color: "transparent"
-        implicitWidth: 180
-        implicitHeight: 118
+        PanelWindow {
+            id: overlay
 
-        anchor {
-            item: root
-            edges: Edges.Bottom | Edges.Right
-            gravity: Edges.Bottom | Edges.Left
-            margins.bottom: 4
-        }
+            property var modelData
+            screen: modelData
 
-        HyprlandFocusGrab {
-            windows: [popup]
-            active: root.menuOpen
-            onCleared: root.menuOpen = false
-        }
+            visible: root.menuOpen
+            color: "transparent"
 
-        Rectangle {
-            id: popupBackground
+            exclusionMode: ExclusionMode.Ignore
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            BackgroundEffect.blurRegion: Region {
+                x: 0
+                y: 0
+                width: overlay.width
+                height: overlay.height
+            }
 
-            anchors.fill: parent
-            color: "#1e1e2e"
-            radius: 10
-            border.width: 2
-            border.color: "#11111b"
+            anchors {
+                top: true
+                left: true
+                bottom: true
+                right: true
+            }
 
-            Column {
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: 6
-                }
-                spacing: 2
+            Rectangle {
+                anchors.fill: parent
+                color: "#cc11111b"
+                focus: true
 
-                PowerButton {
-                    icon: "\uf08b" // nf-fa-sign_out_alt
-                    label: "Log out"
-                    color: "#f38ba8"
-                    onActivated: {
+                // Fecha com ESC.
+                Keys.onPressed: event => {
+                    if (event.key === Qt.Key_Escape)
                         root.menuOpen = false;
-                        Quickshell.execDetached(["hyprctl", "dispatch", "exit"]);
-                    }
                 }
 
-                PowerButton {
-                    icon: "\uf021" // nf-fa-refresh
-                    label: "Reboot"
-                    color: "#f9e2af"
-                    onActivated: {
-                        root.menuOpen = false;
-                        Quickshell.execDetached(["systemctl", "reboot"]);
-                    }
-                }
+                // Clicar fora dos botões fecha a tela.
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: root.menuOpen = false
 
-                PowerButton {
-                    icon: "\uf011" // nf-fa-power_off
-                    label: "Shut down"
-                    color: "#f38ba8"
-                    onActivated: {
-                        root.menuOpen = false;
-                        Quickshell.execDetached(["systemctl", "poweroff"]);
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 24
+
+                        PowerOverlayButton {
+                            icon: "\uf08b" // nf-fa-sign_out_alt
+                            label: "Log out"
+                            accent: "#cba6f7" // mauve
+                            onClicked: {
+                                root.menuOpen = false;
+                                Quickshell.execDetached(["hyprctl", "dispatch", "exit"]);
+                            }
+                        }
+
+                        PowerOverlayButton {
+                            icon: "\uf021" // nf-fa-refresh
+                            label: "Reboot"
+                            accent: "#b4befe" // lavender
+                            onClicked: {
+                                root.menuOpen = false;
+                                Quickshell.execDetached(["systemctl", "reboot"]);
+                            }
+                        }
+
+                        PowerOverlayButton {
+                            icon: "\uf011" // nf-fa-power_off
+                            label: "Shut down"
+                            accent: "#cba6f7" // mauve
+                            onClicked: {
+                                root.menuOpen = false;
+                                Quickshell.execDetached(["systemctl", "poweroff"]);
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    // Item auxiliar: cada linha do menu de energia.
-    component PowerButton: Item {
+    // Botão da tela de energia em tela cheia.
+    component PowerOverlayButton: Item {
         id: buttonRoot
 
         required property string icon
         required property string label
-        property color color: "#cdd6f4"
-        signal activated
+        property color accent: "#cdd6f4"
+        signal clicked
 
-        width: parent.width
-        height: 34
+        width: 180
+        height: 170
 
         Rectangle {
             id: buttonBody
 
             anchors.fill: parent
-            radius: 6
-            color: buttonMouse.hovered ? "#313244" : "transparent"
-        }
-
-        Row {
-            anchors {
-                left: parent.left
-                right: parent.right
-                leftMargin: 10
-                rightMargin: 10
-            }
-            spacing: 10
+            radius: 14
+            color: buttonMouse.hovered ? "#313244" : "#1e1e2e"
+            border.width: 2
+            border.color: buttonMouse.hovered ? buttonRoot.accent : "#11111b"
 
             Text {
                 id: buttonIcon
 
-                width: 18
-                color: buttonRoot.color
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: 28
+                color: buttonRoot.accent
                 font.family: Theme.fontFamily
-                font.pixelSize: Theme.fontSize
+                font.pixelSize: 44
                 text: buttonRoot.icon
-                horizontalAlignment: Text.AlignHCenter
             }
 
             Text {
                 id: buttonLabel
 
-                width: buttonBody.width - 48 // 20 (margins) + 18 (icon) + 10 (spacing)
+                anchors {
+                    bottom: parent.bottom
+                    bottomMargin: 24
+                    horizontalCenter: parent.horizontalCenter
+                }
                 text: buttonRoot.label
                 color: "#cdd6f4"
                 font.family: Theme.fontFamily
                 font.bold: Theme.fontBold
-                font.pixelSize: Theme.fontSize - 1
+                font.pixelSize: Theme.fontSize
             }
         }
 
@@ -167,7 +178,7 @@ Item {
 
             anchors.fill: parent
             hoverEnabled: true
-            onClicked: buttonRoot.activated()
+            onClicked: buttonRoot.clicked()
         }
     }
 }
