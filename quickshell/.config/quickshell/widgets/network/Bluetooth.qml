@@ -1,34 +1,54 @@
 import Quickshell
-import Quickshell.Io
+import Quickshell.Bluetooth
 import QtQuick
 import "../../theme"
 
 Item {
     id: root
 
-    property bool powered: false
-    property int deviceCount: 0
-    property string deviceList: ""
-    property real iconScale: 1
     property bool showTooltip: false
     property bool showBackground: true
+    property real iconScale: 1
+    property int deviceCount: 0
+    property string tooltipText: "Bluetooth off"
+    property var watched: ({})
+
+    readonly property bool powered: Bluetooth.defaultAdapter ? Bluetooth.defaultAdapter.enabled : false
 
     implicitWidth: background.width
     implicitHeight: background.height
 
-    function updateStatus(output) {
-        const parts = output.trim().split("|");
-        root.powered = parts[0] === "yes";
-        root.deviceCount = Number(parts[1]) || 0;
-        root.deviceList = parts.slice(2).filter(name => name !== "").join("\n");
+    function refresh() {
+        let count = 0;
+        const names = [];
+        const vals = Bluetooth.devices.values;
+
+        for (let i = 0; i < vals.length; i++) {
+            const d = vals[i];
+            if (d.connected) {
+                count++;
+                names.push(d.name || d.address);
+            }
+            // Watch each device's connection changes to update reactively.
+            if (!root.watched[d.address]) {
+                d.connectedChanged.connect(root.refresh);
+                root.watched[d.address] = true;
+            }
+        }
+
+        root.deviceCount = count;
+        root.tooltipText = !root.powered
+            ? "Bluetooth off"
+            : count > 0
+                ? `󰂯 ${count} connected${count > 1 ? "s" : ""}\n${names.join("\n")}`
+                : "Bluetooth on\nNo devices connected";
     }
 
-    function setPower(on) {
-        Quickshell.execDetached(["bluetoothctl", "power", on ? "on" : "off"]);
-    }
+    onPoweredChanged: root.refresh()
 
-    function togglePower() {
-        setPower(!root.powered);
+    Component.onCompleted: {
+        Bluetooth.devices.valuesChanged.connect(root.refresh);
+        root.refresh();
     }
 
     Rectangle {
@@ -50,24 +70,19 @@ Item {
         font.family: Theme.fontFamily
         font.bold: Theme.fontBold
         font.pixelSize: Math.round(Theme.fontSize * root.iconScale)
-        text: root.powered && root.deviceCount > 0 ? ` ${root.deviceCount}` : ""
+        text: root.powered && root.deviceCount > 0 ? `󰂯 ${root.deviceCount}` : "󰂯"
     }
 
     MouseArea {
         anchors.fill: background
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
         hoverEnabled: true
+
+        onClicked: bluetoothMenu.visible = !bluetoothMenu.visible
 
         onEntered: tooltipDelay.restart()
         onExited: {
             tooltipDelay.stop();
             root.showTooltip = false;
-        }
-        onClicked: mouse => {
-            if (mouse.button === Qt.LeftButton)
-                root.togglePower();
-            else if (mouse.button === Qt.RightButton && !bluetoothManager.running)
-                bluetoothManager.running = true;
         }
     }
 
@@ -80,9 +95,9 @@ Item {
             gravity: Edges.Bottom | Edges.Left
             margins.bottom: 4
         }
-        visible: root.showTooltip
-        implicitWidth: tooltipText.implicitWidth + 24
-        implicitHeight: tooltipText.implicitHeight + 16
+        visible: root.showTooltip && !bluetoothMenu.visible
+        implicitWidth: tooltipTextItem.implicitWidth + 24
+        implicitHeight: tooltipTextItem.implicitHeight + 16
         color: "transparent"
 
         Rectangle {
@@ -93,10 +108,10 @@ Item {
             border.color: "#11111b"
 
             Text {
-                id: tooltipText
+                id: tooltipTextItem
 
                 anchors.centerIn: parent
-                text: !root.powered ? "Bluetooth off" : root.deviceCount > 0 ? ` ${root.deviceCount} connected${root.deviceCount > 1 ? "s" : ""}\n${root.deviceList}` : "Bluetooth on\nNo devices connected"
+                text: root.tooltipText
                 color: "#cdd6f4"
                 font.family: Theme.fontFamily
                 font.bold: Theme.fontBold
@@ -112,30 +127,9 @@ Item {
         onTriggered: root.showTooltip = true
     }
 
-    Process {
-        id: bluetoothQuery
+    BluetoothMenu {
+        id: bluetoothMenu
 
-        command: ["bash", "-c", "power=$(bluetoothctl show 2>/dev/null | grep -oP 'Powered: \\K\\w+'); count=0; names=''; if [ \"$power\" = \"yes\" ]; then for dev in $(bluetoothctl devices 2>/dev/null | awk '{print $2}'); do info=$(bluetoothctl info \"$dev\" 2>/dev/null); if echo \"$info\" | grep -q 'Connected: yes'; then count=$((count+1)); nm=$(echo \"$info\" | grep -E '^[[:space:]]*Alias:' | sed -E 's/^[[:space:]]*Alias: //'); names=\"$names|$nm\"; fi; done; fi; echo \"$power|$count$names\""]
-        running: true
-
-        stdout: StdioCollector {
-            onStreamFinished: root.updateStatus(text)
-        }
-    }
-
-    Timer {
-        interval: 5000
-        running: true
-        repeat: true
-        onTriggered: {
-            if (!bluetoothQuery.running)
-                bluetoothQuery.running = true;
-        }
-    }
-
-    Process {
-        id: bluetoothManager
-
-        command: ["bluetoothctl"]
+        anchor.item: root
     }
 }
