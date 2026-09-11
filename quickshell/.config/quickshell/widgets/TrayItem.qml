@@ -22,15 +22,15 @@ Item {
         return icon.toLowerCase().includes("symbolic");
     }
 
-    width: 24
-    height: 24
+    width: 20
+    height: 20
 
     Item {
         id: iconArea
 
         anchors.centerIn: parent
-        width: 18
-        height: 18
+        width: 16
+        height: 16
         opacity: root.trayItem && root.trayItem.status === Status.Passive ? 0.7 : 1.0
 
         Image {

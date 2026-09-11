@@ -13,7 +13,11 @@ Rectangle {
     readonly property bool isUrgent: workspace?.urgent ?? false
 
     width: buttonText.width + 15
-    height: 32
+    // Mesmo critério de altura dos demais pills da barra (Clock, Battery,
+    // Brightness...): texto + 16 de padding total no pill. Como o pill de
+    // Workspaces soma row.height + 4, o botão usa texto + 12 para que o
+    // pill finalize em texto + 16, acompanhando Theme.fontSize.
+    height: buttonText.height + 12
     radius: 9
     color: "transparent"
 

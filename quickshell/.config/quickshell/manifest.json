@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "feokuma.dotfiles-bar",
+  "name": "Dotfiles bar",
+  "version": "1.0.0",
+  "author": "feokuma",
+  "description": "Barra personalizada (pills pretas + Catppuccin Mocha, JetBrainsMono Nerd Font) adaptada de ~/Downloads/dotfiles/quickshell",
+  "kinds": [
+    "bar"
+  ],
+  "entryPoints": {
+    "bar": "Bar.qml"
+  }
+}

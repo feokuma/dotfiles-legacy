@@ -12,7 +12,7 @@ PopupWindow {
     visible: root.menuOpen
     color: "transparent"
     implicitWidth: 230
-    implicitHeight: menuList.implicitHeight + 14
+    implicitHeight: menuList.implicitHeight
 
     QsMenuOpener {
         id: menuOpener
